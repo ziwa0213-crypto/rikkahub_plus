@@ -394,6 +394,77 @@ internal fun buildCalendarCreateTool(context: Context): Tool = Tool(
     }
 )
 
+internal fun buildCalendarDeleteTool(context: Context): Tool = Tool(
+    name = "calendar_delete",
+    description = """
+        Delete a calendar event from the user's device. Use the event ID returned by calendar_query
+        or the event_id returned by calendar_create. This permanently removes the event from its
+        calendar and always requires the user's approval. Requires the Calendar write permission.
+    """.trimIndent().replace("\n", " "),
+    needsApproval = { true },
+    parameters = {
+        InputSchema.Obj(
+            properties = buildJsonObject {
+                put("event_id", buildJsonObject {
+                    put("type", "integer")
+                    put(
+                        "description",
+                        "Positive event ID returned by calendar_query or calendar_create."
+                    )
+                })
+            },
+            required = listOf("event_id")
+        )
+    },
+    execute = { args ->
+        if (!hasCalendarWritePermission(context)) {
+            val payload = buildJsonObject {
+                put("error", "NO_PERMISSION")
+                put(
+                    "message",
+                    "Calendar write permission is not granted. Please ask the user to enable " +
+                        "the calendar permission in the assistant's local tools settings."
+                )
+            }
+            return@Tool listOf(UIMessagePart.Text(payload.toString()))
+        }
+
+        val eventId = parseCalendarEventId(
+            args.jsonObject["event_id"]?.jsonPrimitive?.contentOrNull
+        )
+        if (eventId == null) {
+            val payload = buildJsonObject {
+                put("error", "INVALID_EVENT_ID")
+                put("message", "'event_id' must be a positive integer.")
+            }
+            return@Tool listOf(UIMessagePart.Text(payload.toString()))
+        }
+
+        val deletedCount = context.contentResolver.delete(
+            ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId),
+            null,
+            null
+        )
+        if (deletedCount == 0) {
+            val payload = buildJsonObject {
+                put("error", "EVENT_NOT_FOUND")
+                put("message", "No calendar event was found for the provided event_id.")
+            }
+            return@Tool listOf(UIMessagePart.Text(payload.toString()))
+        }
+
+        val payload = buildJsonObject {
+            put("success", true)
+            put("event_id", eventId)
+            put("deleted_count", deletedCount)
+        }
+        listOf(UIMessagePart.Text(payload.toString()))
+    }
+)
+
+internal fun parseCalendarEventId(raw: String?): Long? =
+    raw?.trim()?.toLongOrNull()?.takeIf { it > 0 }
+
 private fun hasCalendarReadPermission(context: Context): Boolean =
     ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
 
