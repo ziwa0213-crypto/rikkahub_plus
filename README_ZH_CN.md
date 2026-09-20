@@ -6,7 +6,6 @@
 
 [English](README.md) | [繁體中文](README_ZH_TW.md) | 简体中文
 
-点击链接加入群聊 👉 [【RikkaHub】](https://qm.qq.com/q/I8MSU0FkOu)
 
 </div>
 
