@@ -1,8 +1,8 @@
 <div align="center">
   <img src="docs/icon.png" alt="App 图标" width="100" />
-  <h1>RikkaHub</h1>
+  <h1>RikkaHub Plus</h1>
 
-一个原生Android LLM 聊天客户端，支持切换不同的供应商进行聊天 🤖💬
+一个基于 RikkaHub 原生Android LLM 聊天客户端，支持切换不同的供应商进行聊天的 fork 🤖💬
 
 [English](README.md) | [繁體中文](README_ZH_TW.md) | 简体中文
 
