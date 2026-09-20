@@ -1276,6 +1276,7 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="assistant_page_local_tools_calendar_desc">让AI查询和创建日历事件</string>
   <string name="chat_message_tool_calendar_query">查询日历事件</string>
   <string name="chat_message_tool_calendar_create">创建事件: %1$s</string>
+  <string name="chat_message_tool_calendar_delete">删除事件: %1$s</string>
   <string name="chat_page_move_to_folder">移动到文件夹</string>
   <string name="chat_page_remove_from_folder">移出文件夹</string>
   <string name="chat_page_create_folder">新建文件夹</string>

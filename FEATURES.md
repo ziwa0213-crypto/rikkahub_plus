@@ -7,10 +7,14 @@
 - **改动文件**：
   - app/src/main/java/me/rerere/rikkahub/data/ai/tools/local/CalendarTool.kt
   - app/src/main/java/me/rerere/rikkahub/data/ai/tools/local/LocalTools.kt
+  - app/src/main/java/me/rerere/rikkahub/ui/components/message/tools/BuiltinToolUIs.kt
+  - app/src/main/java/me/rerere/rikkahub/ui/components/message/tools/ToolUI.kt
+  - app/src/main/res/values*/strings.xml
   - app/src/test/java/me/rerere/rikkahub/data/ai/tools/local/CalendarToolTest.kt
-- **commit**：本条所在的 F001 独立提交（哈希见 git log -1）
+  - app/src/test/java/me/rerere/rikkahub/ui/components/message/tools/ToolUIRegistryTest.kt
+- **commit**：4e3bcb1（核心功能）及本条所在的 UI 补充提交（哈希见 git log -1）
 - **回滚方式**：git revert <F001 commit>
 - **副作用**：无；复用现有 Calendar 开关、写权限和工具审批机制；保留 calendar_query 的 id 输出
-- **测试**：事件 ID 校验单元测试 2/2 通过；Debug APK 构建及签名校验通过
+- **测试**：事件 ID 校验与工具 UI 注册测试 3/3 通过；Debug APK 构建及签名校验通过
 - **交付物**：rikkahub-F001-debug.apk
 - **日期**：2026-09-20
