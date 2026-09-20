@@ -22,12 +22,19 @@ import me.rerere.rikkahub.data.files.SkillMetadata
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
 import me.rerere.rikkahub.data.model.Avatar
+import me.rerere.rikkahub.data.model.MemoryGroup
 import me.rerere.rikkahub.data.model.Tag
 import me.rerere.rikkahub.data.repository.MemoryRepository
 import me.rerere.rikkahub.data.repository.WorkspaceRepository
 import kotlin.uuid.Uuid
 
 private const val TAG = "AssistantDetailVM"
+
+data class MemoryGroupDeleteImpact(
+    val group: MemoryGroup,
+    val memoryCount: Int,
+    val memberCount: Int,
+)
 
 class AssistantDetailVM(
     private val id: String,
@@ -41,6 +48,9 @@ class AssistantDetailVM(
 
     private val _skills = MutableStateFlow<List<SkillMetadata>>(emptyList())
     val skills = _skills.asStateFlow()
+
+    private val _memoryGroupDeleteImpact = MutableStateFlow<MemoryGroupDeleteImpact?>(null)
+    val memoryGroupDeleteImpact = _memoryGroupDeleteImpact.asStateFlow()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -68,11 +78,9 @@ class AssistantDetailVM(
 
     val memories = assistant
         .flatMapLatest { currentAssistant ->
-            if (currentAssistant.useGlobalMemory) {
-                memoryRepository.getGlobalMemoriesFlow()
-            } else {
-                memoryRepository.getMemoriesOfAssistantFlow(assistantId.toString())
-            }
+            memoryRepository.getMemoriesOfAssistantFlow(
+                MemoryRepository.scopeOf(currentAssistant)
+            )
         }
         .stateIn(
             scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = emptyList()
@@ -178,15 +186,92 @@ class AssistantDetailVM(
         }
     }
 
+    fun createMemoryGroup(name: String) {
+        val group = MemoryGroup(name = name.trim())
+        if (group.name.isEmpty()) return
+
+        viewModelScope.launch {
+            settingsStore.update { settings ->
+                settings.copy(
+                    memoryGroups = settings.memoryGroups + group,
+                    assistants = settings.assistants.map { currentAssistant ->
+                        if (currentAssistant.id == assistantId) {
+                            currentAssistant.copy(
+                                useGlobalMemory = false,
+                                memoryGroupId = group.id,
+                            )
+                        } else {
+                            currentAssistant
+                        }
+                    },
+                )
+            }
+        }
+    }
+
+    fun renameMemoryGroup(group: MemoryGroup, name: String) {
+        val normalizedName = name.trim()
+        if (normalizedName.isEmpty()) return
+
+        viewModelScope.launch {
+            settingsStore.update { settings ->
+                settings.copy(
+                    memoryGroups = settings.memoryGroups.map { currentGroup ->
+                        if (currentGroup.id == group.id) {
+                            currentGroup.copy(name = normalizedName)
+                        } else {
+                            currentGroup
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fun requestMemoryGroupDeletion(group: MemoryGroup) {
+        viewModelScope.launch {
+            _memoryGroupDeleteImpact.value = MemoryGroupDeleteImpact(
+                group = group,
+                memoryCount = memoryRepository.getMemoriesOfAssistant(
+                    MemoryRepository.scopeOf(group.id)
+                ).size,
+                memberCount = settings.value.assistants.count { it.memoryGroupId == group.id },
+            )
+        }
+    }
+
+    fun dismissMemoryGroupDeletion() {
+        _memoryGroupDeleteImpact.value = null
+    }
+
+    fun confirmMemoryGroupDeletion() {
+        val impact = _memoryGroupDeleteImpact.value ?: return
+        _memoryGroupDeleteImpact.value = null
+
+        viewModelScope.launch {
+            memoryRepository.deleteMemoriesOfAssistant(MemoryRepository.scopeOf(impact.group.id))
+            settingsStore.update { settings ->
+                settings.copy(
+                    memoryGroups = settings.memoryGroups.filterNot { it.id == impact.group.id },
+                    assistants = settings.assistants.map { currentAssistant ->
+                        if (currentAssistant.memoryGroupId == impact.group.id) {
+                            currentAssistant.copy(
+                                useGlobalMemory = false,
+                                memoryGroupId = null,
+                            )
+                        } else {
+                            currentAssistant
+                        }
+                    },
+                )
+            }
+        }
+    }
+
     fun addMemory(memory: AssistantMemory) {
         viewModelScope.launch {
-            val memoryAssistantId = if (assistant.value.useGlobalMemory) {
-                MemoryRepository.GLOBAL_MEMORY_ID
-            } else {
-                assistantId.toString()
-            }
             memoryRepository.addMemory(
-                assistantId = memoryAssistantId,
+                assistantId = MemoryRepository.scopeOf(assistant.value),
                 content = memory.content
             )
         }

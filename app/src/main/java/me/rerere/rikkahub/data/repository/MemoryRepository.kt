@@ -4,11 +4,22 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import me.rerere.rikkahub.data.db.dao.MemoryDAO
 import me.rerere.rikkahub.data.db.entity.MemoryEntity
+import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
+import kotlin.uuid.Uuid
 
 class MemoryRepository(private val memoryDAO: MemoryDAO) {
     companion object {
         const val GLOBAL_MEMORY_ID = "__global__"
+        const val GROUP_MEMORY_PREFIX = "g:"
+
+        fun scopeOf(assistant: Assistant): String = when {
+            assistant.useGlobalMemory -> GLOBAL_MEMORY_ID
+            assistant.memoryGroupId != null -> scopeOf(assistant.memoryGroupId)
+            else -> assistant.id.toString()
+        }
+
+        fun scopeOf(groupId: Uuid): String = "$GROUP_MEMORY_PREFIX$groupId"
     }
 
     fun getMemoriesOfAssistantFlow(assistantId: String): Flow<List<AssistantMemory>> =

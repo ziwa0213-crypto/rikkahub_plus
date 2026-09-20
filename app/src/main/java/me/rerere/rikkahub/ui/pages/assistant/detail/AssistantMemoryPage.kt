@@ -1,9 +1,10 @@
 package me.rerere.rikkahub.ui.pages.assistant.detail
 
 import me.rerere.hugeicons.HugeIcons
-import me.rerere.hugeicons.stroke.PencilEdit01
 import me.rerere.hugeicons.stroke.Add01
+import me.rerere.hugeicons.stroke.ArrowRight01
 import me.rerere.hugeicons.stroke.Delete01
+import me.rerere.hugeicons.stroke.PencilEdit01
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -37,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,8 +50,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.rerere.rikkahub.R
 import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.AssistantMemory
+import me.rerere.rikkahub.data.model.MemoryGroup
 import me.rerere.rikkahub.ui.components.nav.BackButton
 import me.rerere.rikkahub.ui.components.ui.CardGroup
+import me.rerere.rikkahub.ui.components.ui.MemoryGroupSelector
 import me.rerere.rikkahub.ui.components.ui.RikkaConfirmDialog
 import me.rerere.rikkahub.ui.hooks.EditStateContent
 import me.rerere.rikkahub.ui.hooks.useEditState
@@ -65,6 +70,8 @@ fun AssistantMemoryPage(id: String) {
     )
     val assistant by vm.assistant.collectAsStateWithLifecycle()
     val memories by vm.memories.collectAsStateWithLifecycle()
+    val settings by vm.settings.collectAsStateWithLifecycle()
+    val memoryGroupDeleteImpact by vm.memoryGroupDeleteImpact.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
@@ -87,7 +94,14 @@ fun AssistantMemoryPage(id: String) {
             innerPadding = innerPadding,
             assistant = assistant,
             memories = memories,
+            memoryGroups = settings.memoryGroups,
+            memoryGroupDeleteImpact = memoryGroupDeleteImpact,
             onUpdateAssistant = { vm.update(it) },
+            onCreateMemoryGroup = vm::createMemoryGroup,
+            onRenameMemoryGroup = vm::renameMemoryGroup,
+            onRequestDeleteMemoryGroup = vm::requestMemoryGroupDeletion,
+            onConfirmDeleteMemoryGroup = vm::confirmMemoryGroupDeletion,
+            onDismissDeleteMemoryGroup = vm::dismissMemoryGroupDeletion,
             onDeleteMemory = { vm.deleteMemory(it) },
             onAddMemory = { vm.addMemory(it) },
             onUpdateMemory = { vm.updateMemory(it) }
@@ -100,7 +114,14 @@ private fun AssistantMemoryContent(
     innerPadding: PaddingValues,
     assistant: Assistant,
     memories: List<AssistantMemory>,
+    memoryGroups: List<MemoryGroup>,
+    memoryGroupDeleteImpact: MemoryGroupDeleteImpact?,
     onUpdateAssistant: (Assistant) -> Unit,
+    onCreateMemoryGroup: (String) -> Unit,
+    onRenameMemoryGroup: (MemoryGroup, String) -> Unit,
+    onRequestDeleteMemoryGroup: (MemoryGroup) -> Unit,
+    onConfirmDeleteMemoryGroup: () -> Unit,
+    onDismissDeleteMemoryGroup: () -> Unit,
     onAddMemory: (AssistantMemory) -> Unit,
     onUpdateMemory: (AssistantMemory) -> Unit,
     onDeleteMemory: (AssistantMemory) -> Unit,
@@ -113,6 +134,56 @@ private fun AssistantMemoryContent(
         }
     }
     var pendingDeleteMemory by remember { mutableStateOf<AssistantMemory?>(null) }
+    var showMemoryGroupSelector by remember { mutableStateOf(false) }
+
+    val currentMemoryScopeName = when {
+        assistant.useGlobalMemory -> stringResource(R.string.memory_group_global)
+        assistant.memoryGroupId != null -> memoryGroups
+            .find { it.id == assistant.memoryGroupId }
+            ?.name
+            ?: stringResource(R.string.memory_group_private)
+        else -> stringResource(R.string.memory_group_private)
+    }
+
+    MemoryGroupSelector(
+        show = showMemoryGroupSelector,
+        assistant = assistant,
+        memoryGroups = memoryGroups,
+        onDismiss = { showMemoryGroupSelector = false },
+        onSelectPrivate = {
+            onUpdateAssistant(
+                assistant.copy(
+                    useGlobalMemory = false,
+                    memoryGroupId = null,
+                )
+            )
+            showMemoryGroupSelector = false
+        },
+        onSelectGlobal = {
+            onUpdateAssistant(
+                assistant.copy(
+                    useGlobalMemory = true,
+                    memoryGroupId = null,
+                )
+            )
+            showMemoryGroupSelector = false
+        },
+        onSelectGroup = { group ->
+            onUpdateAssistant(
+                assistant.copy(
+                    useGlobalMemory = false,
+                    memoryGroupId = group.id,
+                )
+            )
+            showMemoryGroupSelector = false
+        },
+        onCreateGroup = onCreateMemoryGroup,
+        onRenameGroup = onRenameMemoryGroup,
+        onDeleteGroup = { group ->
+            showMemoryGroupSelector = false
+            onRequestDeleteMemoryGroup(group)
+        },
+    )
 
     var showTimeReminderIntervalDialog by remember(assistant.id) { mutableStateOf(false) }
     var timeReminderIntervalInput by remember(assistant.id) { mutableStateOf("") }
@@ -228,24 +299,28 @@ private fun AssistantMemoryContent(
                 }
             )
             item(
-                headlineContent = { Text(stringResource(R.string.assistant_page_global_memory)) },
+                onClick = if (assistant.enableMemory) {
+                    { showMemoryGroupSelector = true }
+                } else {
+                    null
+                },
+                modifier = Modifier.alpha(if (assistant.enableMemory) 1f else 0.38f),
+                headlineContent = { Text(stringResource(R.string.assistant_page_memory_group)) },
                 supportingContent = {
                     Text(
-                        text = stringResource(R.string.assistant_page_global_memory_desc),
+                        text = stringResource(R.string.assistant_page_memory_group_desc),
                     )
                 },
                 trailingContent = {
-                    Switch(
-                        checked = assistant.useGlobalMemory,
-                        onCheckedChange = {
-                            onUpdateAssistant(
-                                assistant.copy(
-                                    useGlobalMemory = it
-                                )
-                            )
-                        },
-                        enabled = assistant.enableMemory
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = currentMemoryScopeName,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.widthIn(max = 140.dp),
+                        )
+                        Icon(HugeIcons.ArrowRight01, contentDescription = null)
+                    }
                 }
             )
             item(
@@ -344,6 +419,27 @@ private fun AssistantMemoryContent(
             }
         }
     }
+
+    RikkaConfirmDialog(
+        show = memoryGroupDeleteImpact != null,
+        title = stringResource(R.string.memory_group_delete_confirm_title),
+        confirmText = stringResource(R.string.memory_group_delete),
+        dismissText = stringResource(R.string.cancel),
+        onConfirm = onConfirmDeleteMemoryGroup,
+        onDismiss = onDismissDeleteMemoryGroup,
+        text = {
+            memoryGroupDeleteImpact?.let { impact ->
+                Text(
+                    stringResource(
+                        R.string.memory_group_delete_confirm,
+                        impact.group.name,
+                        impact.memoryCount,
+                        impact.memberCount,
+                    )
+                )
+            }
+        },
+    )
 
     RikkaConfirmDialog(
         show = pendingDeleteMemory != null,

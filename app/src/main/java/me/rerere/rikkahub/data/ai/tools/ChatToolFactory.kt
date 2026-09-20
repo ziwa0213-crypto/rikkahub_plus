@@ -42,11 +42,7 @@ class ChatToolFactory(
         workspaceCwd: String? = null,
     ): List<Tool> = buildList {
         if (assistant.enableMemory) {
-            val memoryAssistantId = if (assistant.useGlobalMemory) {
-                MemoryRepository.GLOBAL_MEMORY_ID
-            } else {
-                assistant.id.toString()
-            }
+            val memoryAssistantId = MemoryRepository.scopeOf(assistant)
             addAll(
                 buildMemoryTools(
                     json = json,

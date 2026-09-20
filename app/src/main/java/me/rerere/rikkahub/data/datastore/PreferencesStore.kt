@@ -41,6 +41,7 @@ import me.rerere.rikkahub.data.model.Assistant
 import me.rerere.rikkahub.data.model.Avatar
 import me.rerere.rikkahub.data.model.InjectionPosition
 import me.rerere.rikkahub.data.model.Lorebook
+import me.rerere.rikkahub.data.model.MemoryGroup
 import me.rerere.rikkahub.data.model.PromptInjection
 import me.rerere.rikkahub.data.model.QuickMessage
 import me.rerere.rikkahub.data.model.Tag
@@ -143,6 +144,7 @@ class SettingsStore(
         // 提示词注入
         val MODE_INJECTIONS = stringPreferencesKey("mode_injections")
         val LOREBOOKS = stringPreferencesKey("lorebooks")
+        val MEMORY_GROUPS = stringPreferencesKey("memory_groups")
         val QUICK_MESSAGES = stringPreferencesKey("quick_messages")
 
         // 备份提醒
@@ -209,6 +211,7 @@ class SettingsStore(
                 } ?: preferences.remove(SELECTED_ASR_PROVIDER)
                 preferences[MODE_INJECTIONS] = JsonInstant.encodeToString(settings.modeInjections)
                 preferences[LOREBOOKS] = JsonInstant.encodeToString(settings.lorebooks)
+                preferences[MEMORY_GROUPS] = JsonInstant.encodeToString(settings.memoryGroups)
                 preferences[QUICK_MESSAGES] = JsonInstant.encodeToString(settings.quickMessages)
                 preferences[WEB_SERVER_ENABLED] = settings.webServerEnabled
                 preferences[WEB_SERVER_PORT] = settings.webServerPort
@@ -302,6 +305,9 @@ class SettingsStore(
                 lorebooks = preferences[LOREBOOKS]?.let {
                     JsonInstant.decodeFromString(it)
                 } ?: emptyList(),
+                memoryGroups = preferences[MEMORY_GROUPS]?.let {
+                    JsonInstant.decodeFromString(it)
+                } ?: emptyList(),
                 quickMessages = preferences[QUICK_MESSAGES]?.let {
                     JsonInstant.decodeFromString(it)
                 } ?: emptyList(),
@@ -357,6 +363,7 @@ class SettingsStore(
             val validMcpServerIds = settings.mcpServers.map { it.id }.toSet()
             val validModeInjectionIds = settings.modeInjections.map { it.id }.toSet()
             val validLorebookIds = settings.lorebooks.map { it.id }.toSet()
+            val validMemoryGroupIds = settings.memoryGroups.map { it.id }.toSet()
             val validQuickMessageIds = settings.quickMessages.map { it.id }.toSet()
             val asrProviders = settings.asrProviders.distinctBy { it.id }
             settings.copy(
@@ -389,6 +396,9 @@ class SettingsStore(
                         lorebookIds = assistant.lorebookIds.filter { id ->
                             id in validLorebookIds
                         }.toSet(),
+                        memoryGroupId = assistant.memoryGroupId?.takeIf { id ->
+                            id in validMemoryGroupIds
+                        },
                         // 过滤掉不存在的快捷消息 ID
                         quickMessageIds = assistant.quickMessageIds.filter { id ->
                             id in validQuickMessageIds
@@ -405,6 +415,7 @@ class SettingsStore(
                 },
                 modeInjections = settings.modeInjections.distinctBy { it.id },
                 lorebooks = settings.lorebooks.distinctBy { it.id },
+                memoryGroups = settings.memoryGroups.distinctBy { it.id },
                 quickMessages = settings.quickMessages.distinctBy { it.id },
             )
         }
@@ -557,6 +568,7 @@ data class Settings(
     val selectedASRProviderId: Uuid? = null,
     val modeInjections: List<PromptInjection.ModeInjection> = DEFAULT_MODE_INJECTIONS,
     val lorebooks: List<Lorebook> = emptyList(),
+    val memoryGroups: List<MemoryGroup> = emptyList(),
     val quickMessages: List<QuickMessage> = emptyList(),
     val webServerEnabled: Boolean = false,
     val webServerPort: Int = 8080,
