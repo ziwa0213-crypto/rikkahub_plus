@@ -31,7 +31,7 @@
 - 🧠 类ChatGPT记忆功能（让记忆功能变得更加细化的分组记忆）
 - 📝 AI翻译
 - 🌐 自定义HTTP请求头和请求体
-- ❗ 无需确认的命令执行体验
+- ❗ 可供多种选择的命令执行体验（始终询问，部分允许，无需确认）
 ## ✨ 贡献
 
 本项目使用[Android Studio](https://developer.android.com/studio)开发，欢迎提交PR
