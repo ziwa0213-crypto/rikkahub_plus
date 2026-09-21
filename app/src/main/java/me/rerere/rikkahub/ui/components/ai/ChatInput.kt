@@ -348,6 +348,14 @@ fun ChatInput(
                                 )
                             }
 
+                            ToolApprovalButton(
+                                mode = assistant.toolApprovalMode,
+                                onUpdateMode = {
+                                    onUpdateAssistant(assistant.copy(toolApprovalMode = it))
+                                },
+                                onlyIcon = true,
+                            )
+
                         }
 
                         ActionIconButton(

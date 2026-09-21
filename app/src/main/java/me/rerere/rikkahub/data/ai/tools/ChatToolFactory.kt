@@ -88,6 +88,8 @@ class ChatToolFactory(
                 )
             )
         }
+    }.let { tools ->
+        applyApprovalMode(tools, assistant.toolApprovalMode)
     }
 
     private suspend fun createWorkspaceToolsIfReady(workspaceId: String?, cwd: String?): List<Tool> {

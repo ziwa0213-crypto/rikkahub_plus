@@ -26,8 +26,8 @@ android {
         applicationId = "me.rerere.rikkahub"
         minSdk = 26
         targetSdk = 37
-        versionCode = 187
-        versionName = "2.5.2"
+        versionCode = 188
+        versionName = "2.5.3-work.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -75,6 +75,7 @@ android {
 
     buildTypes {
         release {
+            applicationIdSuffix = ".plus"
             signingConfig = signingConfigs.getByName("release")
             optimization {
                 enable = true

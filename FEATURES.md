@@ -41,3 +41,37 @@
 - **测试**：记忆范围与旧数据兼容测试 4/4 通过；Debug APK 构建通过
 - **交付物**：rikkahub-F002-debug.apk
 - **日期**：2026-09-20
+
+## [F003] 更新源改造
+- **需求**：更新检查只读取本 fork 的 GitHub Release，并让用户自行下载和安装
+- **状态**：✅ 已实现，待用户确认 APK 后提交
+- **量级**：A 类（更新逻辑 + UI）
+- **改动文件**：
+  - app/src/main/java/me/rerere/rikkahub/utils/UpdateChecker.kt
+  - app/src/main/java/me/rerere/rikkahub/ui/components/ui/UpdateCard.kt
+  - app/src/main/res/values/strings.xml
+  - app/src/main/res/values-zh/strings.xml
+  - app/src/test/java/me/rerere/rikkahub/utils/UpdateCheckerTest.kt
+- **commit**：待用户确认 APK 后提交
+- **回滚方式**：`git revert <F003 commit>`
+- **行为**：数据源为 `ziwa0213-crypto/rikkahub_work` 的 GitHub Release；点击更新卡片打开发布页；网络失败、404、限流和解析失败均静默；不再由应用内 `DownloadManager` 下载 APK
+- **版本约定**：Release tag 使用不带 `v` 的 SemVer，且核心版本号必须高于已安装版本
+- **测试**：GitHub Release JSON 映射、`v` 前缀剥离和可选字段解析测试
+- **日期**：2026-09-21
+
+## [F004] 工具审批模式
+- **需求**：在聊天输入栏按助手选择工具调用前的审批模式
+- **状态**：✅ 已实现，待用户确认 APK 后上传
+- **改动文件**：
+  - app/src/main/java/me/rerere/rikkahub/data/model/Assistant.kt
+  - app/src/main/java/me/rerere/rikkahub/data/ai/tools/ToolRiskTiers.kt
+  - app/src/main/java/me/rerere/rikkahub/data/ai/tools/ChatToolFactory.kt
+  - app/src/main/java/me/rerere/rikkahub/data/ai/tools/local/CalendarTool.kt
+  - app/src/main/java/me/rerere/rikkahub/ui/components/ai/ToolApprovalPicker.kt
+  - app/src/main/java/me/rerere/rikkahub/ui/components/ai/ChatInput.kt
+  - app/src/main/res/values/strings.xml
+  - app/src/main/res/values-zh/strings.xml
+  - app/src/test/java/me/rerere/rikkahub/data/ai/tools/ToolRiskTiersTest.kt
+- **回滚方式**：`git revert <F004 commit>`
+- **测试**：风险分级、动态 action、MCP/workspace 默认审批、三档覆盖及 `ask_user` HITL 白名单测试
+- **日期**：2026-09-21

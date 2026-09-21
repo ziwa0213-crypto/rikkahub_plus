@@ -13,6 +13,18 @@ import java.util.concurrent.TimeUnit
 import kotlin.uuid.Uuid
 
 @Serializable
+enum class ToolApprovalMode {
+    @SerialName("ask_all")
+    AskAll,
+
+    @SerialName("partial")
+    Partial,
+
+    @SerialName("allow_all")
+    AllowAll,
+}
+
+@Serializable
 data class Assistant(
     val id: Uuid = Uuid.random(),
     val chatModelId: Uuid? = null, // 如果为null, 使用全局默认模型
@@ -35,6 +47,7 @@ data class Assistant(
     val quickMessageIds: Set<Uuid> = emptySet(),
     val regexes: List<AssistantRegex> = emptyList(),
     val reasoningLevel: ReasoningLevel = ReasoningLevel.AUTO,
+    val toolApprovalMode: ToolApprovalMode = ToolApprovalMode.Partial,
     val maxTokens: Int? = null,
     val customHeaders: List<CustomHeader> = emptyList(),
     val customBodies: List<CustomBody> = emptyList(),

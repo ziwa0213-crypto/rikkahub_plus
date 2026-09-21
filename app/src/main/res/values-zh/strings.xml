@@ -7,7 +7,7 @@
   <string name="about_page_version">版本</string>
   <string name="about_page_website">官网</string>
   <string name="add">添加</string>
-  <string name="app_name">RikkaHub</string>
+  <string name="app_name">Rikkahub Work</string>
   <string name="asr_button_content_description">语音识别</string>
   <string name="asr_button_stop">停止</string>
   <string name="assistant_detail_basic_desc">配置名称、头像、模型和参数</string>
@@ -556,6 +556,15 @@
   <string name="reasoning_picker_hint">并非所有模型都支持深度调整。请参考模型和提供商文档。</string>
   <string name="reasoning_picker_title">调整模型思考深度</string>
   <string name="reasoning_xhigh">超高</string>
+  <string name="tool_approval_button_content_description">工具审批模式</string>
+  <string name="tool_approval_picker_title">工具审批</string>
+  <string name="tool_approval_picker_hint">此设置会分别保存到每个助手。</string>
+  <string name="tool_approval_ask_all">需要询问</string>
+  <string name="tool_approval_ask_all_desc">每次调用工具前都询问确认。</string>
+  <string name="tool_approval_partial">部分询问</string>
+  <string name="tool_approval_partial_desc">高风险的修改、删除或执行操作前询问。</string>
+  <string name="tool_approval_allow_all">完全允许</string>
+  <string name="tool_approval_allow_all_desc">跳过应用内确认，但仍需要 Android 系统权限。</string>
   <string name="regenerate">重新生成</string>
   <string name="regenerate_confirm_message">确定要重新生成此消息吗？此消息下方所有消息会被清理</string>
   <string name="render_with_webview">网页视图渲染</string>
@@ -1136,6 +1145,7 @@ mDNS 地址：使用 .local 主机名，同一网络中的其他设备可通过�
   <string name="update_card_close">关闭</string>
   <string name="update_card_downloading">正在下载，请在状态栏查看进度</string>
   <string name="update_card_new_version_found">发现新版本 %s</string>
+  <string name="update_card_open_release_page">前往 GitHub 发布页下载</string>
   <string name="update_card_unknown_error">未知错误</string>
   <string name="upload_file">上传文件</string>
   <string name="use_web_search">网络搜索</string>
