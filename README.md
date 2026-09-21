@@ -29,7 +29,6 @@ A fork of RikkaHub — a native Android LLM chat client that supports switching 
 - 🧠 ChatGPT-like memory feature（Grouped memory — memory scoping refined into per-group sharing）
 - 📝 AI Translation
 - 🌐 Custom HTTP request headers and request bodies
-- 💌 Silly Tavern character card import
 - ❗ Selectable command-execution experience (Always ask / Partially allow / Never ask)
 ## ✨ Contributing
 
