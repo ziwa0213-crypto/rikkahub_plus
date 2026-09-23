@@ -49,6 +49,8 @@ mcp = "0.15.0"
 pebble = "4.1.1"
 browser = "1.10.0"
 appcompat = "1.8.0"
+androidxAnnotation = "1.10.0"
+dynamicAnimation = "1.1.0"
 material = "1.14.0"
 ucrop = "2.2.11-native"
 floatingx = "3.0.0"
@@ -147,6 +149,8 @@ diffutils = { module = "io.github.java-diff-utils:java-diff-utils", version.ref 
 snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "browser" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "androidxAnnotation" }
+androidx-dynamicanimation = { group = "androidx.dynamicanimation", name = "dynamicanimation", version.ref = "dynamicAnimation" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 ucrop = { group = "com.github.yalantis", name = "ucrop", version.ref = "ucrop" }
 floatingx-app = { group = "io.github.petterpx", name = "floatingx-app", version.ref = "floatingx" }

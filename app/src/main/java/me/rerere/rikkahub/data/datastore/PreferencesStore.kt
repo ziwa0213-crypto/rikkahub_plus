@@ -153,9 +153,6 @@ class SettingsStore(
         // 统计
         val LAUNCH_COUNT = intPreferencesKey("launch_count")
 
-        // 赞助提醒
-        val SPONSOR_ALERT_DISMISSED_AT = intPreferencesKey("sponsor_alert_dismissed_at")
-
         // Uses the same DataStore singleton without starting settings flows or requiring Koin.
         internal suspend fun restoreBeforeInitialization(context: Context, settings: Settings) {
             require(!settings.init) { "Cannot restore uninitialized settings" }
@@ -163,12 +160,13 @@ class SettingsStore(
         }
 
         private suspend fun persistSettings(dataStore: DataStore<Preferences>, settings: Settings) {
+            val displaySetting = settings.displaySetting.normalizeLegacyBackgroundEffect()
             dataStore.edit { preferences ->
                 preferences[DYNAMIC_COLOR] = settings.dynamicColor
                 preferences[THEME_ID] = settings.themeId
                 preferences[CUSTOM_THEMES] = JsonInstant.encodeToString(settings.customThemes)
                 preferences[DEVELOPER_MODE] = settings.developerMode
-                preferences[DISPLAY_SETTING] = JsonInstant.encodeToString(settings.displaySetting)
+                preferences[DISPLAY_SETTING] = JsonInstant.encodeToString(displaySetting)
                 preferences[NETWORK_SETTING] = JsonInstant.encodeToString(settings.networkSetting)
 
                 preferences[FAVORITE_MODELS] = JsonInstant.encodeToString(settings.favoriteModels)
@@ -220,7 +218,6 @@ class SettingsStore(
                 preferences[WEB_SERVER_LOCALHOST_ONLY] = settings.webServerLocalhostOnly
                 preferences[BACKUP_REMINDER_CONFIG] = JsonInstant.encodeToString(settings.backupReminderConfig)
                 preferences[LAUNCH_COUNT] = settings.launchCount
-                preferences[SPONSOR_ALERT_DISMISSED_AT] = settings.sponsorAlertDismissedAt
             }
         }
     }
@@ -271,7 +268,9 @@ class SettingsStore(
                     JsonInstant.decodeFromString(it)
                 } ?: emptyList(),
                 developerMode = preferences[DEVELOPER_MODE] == true,
-                displaySetting = JsonInstant.decodeFromString(preferences[DISPLAY_SETTING] ?: "{}"),
+                displaySetting = JsonInstant.decodeFromString<DisplaySetting>(
+                    preferences[DISPLAY_SETTING] ?: "{}"
+                ).normalizeLegacyBackgroundEffect(),
                 networkSetting = JsonInstant.decodeFromString(preferences[NETWORK_SETTING] ?: "{}"),
                 searchServices = preferences[SEARCH_SERVICES]?.let {
                     JsonInstant.decodeFromString(it)
@@ -320,7 +319,6 @@ class SettingsStore(
                     JsonInstant.decodeFromString(it)
                 } ?: BackupReminderConfig(),
                 launchCount = preferences[LAUNCH_COUNT] ?: 0,
-                sponsorAlertDismissedAt = preferences[SPONSOR_ALERT_DISMISSED_AT] ?: 0,
             )
         }
         .map {
@@ -577,7 +575,6 @@ data class Settings(
     val webServerLocalhostOnly: Boolean = false,
     val backupReminderConfig: BackupReminderConfig = BackupReminderConfig(),
     val launchCount: Int = 0,
-    val sponsorAlertDismissedAt: Int = 0,
 ) {
     companion object {
         // 构造一个用于初始化的settings, 但它不能用于保存，防止使用初始值存储
@@ -614,6 +611,23 @@ enum class BackgroundEffectType {
 
     @SerialName("glass")
     GLASS,
+
+    @SerialName("liquid")
+    LIQUID,
+}
+
+/**
+ * Keeps the old haze-glass setting usable after the effect selector gains a liquid mode.
+ */
+internal fun DisplaySetting.normalizeLegacyBackgroundEffect(): DisplaySetting {
+    return if (backgroundEffectType == BackgroundEffectType.GLASS) {
+        copy(
+            backgroundEffectType = BackgroundEffectType.LIQUID,
+            liquidCompatMode = true,
+        )
+    } else {
+        this
+    }
 }
 
 @Serializable
@@ -651,6 +665,7 @@ data class DisplaySetting(
     val enableLatexRendering: Boolean = true,
     val enableBlurEffect: Boolean = false,
     val backgroundEffectType: BackgroundEffectType = BackgroundEffectType.BLUR,
+    val liquidCompatMode: Boolean = false,
     val chatFontFamily: ChatFontFamily = ChatFontFamily.DEFAULT,
     val chatCustomFontPath: String = "",
     val chatCustomFontName: String = "",

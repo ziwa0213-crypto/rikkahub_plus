@@ -1,0 +1,6 @@
+<resources>
+    <item name="liquid_glass_source" type="id" />
+    <item name="liquid_glass_surface" type="id" />
+    <item name="liquid_glass_input" type="id" />
+    <item name="liquid_glass_tint" type="id" />
+</resources>

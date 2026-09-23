@@ -26,8 +26,8 @@ android {
         applicationId = "me.rerere.rikkahub"
         minSdk = 26
         targetSdk = 37
-        versionCode = 188
-        versionName = "2.5.3-work.1"
+        versionCode = 190
+        versionName = "2.5.3-work.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -198,6 +198,7 @@ dependencies {
     implementation(libs.haze.blur.material3)
     implementation(libs.haze.glass)
     implementation(libs.haze.glass.material3)
+    implementation(project(":liquidglass"))
 
     // koin
     implementation(platform(libs.koin.bom))

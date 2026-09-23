@@ -75,3 +75,31 @@
 - **回滚方式**：`git revert <F004 commit>`
 - **测试**：风险分级、动态 action、MCP/workspace 默认审批、三档覆盖及 `ask_user` HITL 白名单测试
 - **日期**：2026-09-21
+
+## [F006] 液态玻璃效果接入
+- **需求**：为聊天输入栏接入 `AndroidLiquidGlassView` 的折射与色散效果，并保留 Android 13 以下用户的兼容路径
+- **状态**：🛠️ 正式接入及本地 Release 构建已完成，2.5.3-work.3（versionCode 190）；实机验证待用户，未上传 GitHub
+- **量级**：B 类（依赖接入 + 设置模型 + Compose/View 互操作）
+- **改动文件**：
+  - `gradle/libs.versions.toml`
+  - `app/build.gradle.kts`
+  - `app/src/main/java/me/rerere/rikkahub/data/datastore/PreferencesStore.kt`
+  - `app/src/main/java/me/rerere/rikkahub/ui/components/ai/ChatInput.kt`
+  - `app/src/main/java/me/rerere/rikkahub/ui/components/ai/LiquidGlassInputBackground.kt`
+  - `liquidglass/`（v1.0.5 MIT 库本地模块；增加录制防重入及渲染失败回调）
+  - `app/src/main/java/me/rerere/rikkahub/ui/pages/debug/DebugPage.kt`
+  - `app/src/main/java/me/rerere/rikkahub/ui/pages/setting/SettingPreferencesGeneralPage.kt`
+  - `app/src/main/res/values/strings.xml`
+  - `app/src/main/res/values-zh/strings.xml`
+  - `app/src/main/res/values-zh-rTW/strings.xml`
+  - `app/src/test/java/me/rerere/rikkahub/data/datastore/BackgroundEffectTest.kt`
+  - `docs/07-液态玻璃库接入预研.md`
+- **版本**：`versionName=2.5.3-work.3`，`versionCode=190`
+- **兼容行为**：`minSdk=26` 保持不变；API 33 以下走 Haze 兼容渲染；旧 `glass` 数据归一化为液态兼容模式
+- **实现与验证**：已将聊天内容采样源、液态玻璃和输入控件分置于独立兄弟层；采样源不包含玻璃自身。库内加入录制防重入、finally 收尾和异步渲染异常回调；失败时进程内熔断并回退 Haze。API 33 以下仍走 Haze，默认仍为模糊。`:app:testDebugUnitTest`、`:app:compileReleaseKotlin` 和 `:app:assembleRelease` 均通过；Release APK 包名、版本与 V2 签名已核验。用户确认隔离原型观感良好，但正式聊天页的重复进出、旋转、切换会话、输入触摸、滚动性能、发热和耗电仍需设备验证
+- **第三方组件**：`com.qmdeve.liquidglass:core:1.0.5`，MIT License，Copyright © 2025-2026 Donny Yale (QmDeve)
+- **commit**：尚未提交；改动仍在工作树
+- **回滚方式**：提交前按审核后的 F006 文件清单回退；形成专属提交后使用 `git revert <F006 commit>`
+- **APK**：本轮只生成本地 Release APK，不上传 GitHub；设备验证结果由用户确认
+- **上游升级需重做清单**：重新核对 `ChatInput.kt`、`PreferencesStore.kt`、`SettingPreferencesGeneralPage.kt`、三份保留语言资源及 `libs.versions.toml` 的冲突；重新执行编译、单元测试和 API 33+ 实机验证
+- **日期**：2026-09-23

@@ -94,6 +94,57 @@
 - Release APK 使用独立签名，GitHub Release 资产名为 `Rikkahub Work-release.apk`。
 - 正式版本：`versionName=2.5.3-work.1`，`versionCode=188`。
 
+## [v2.5.3-work.2] — 2026-09-22（已构建验证包，未正式发布）
+
+> 本版本基于当前工作树，版本号为 `versionName=2.5.3-work.2`、`versionCode=189`。
+
+### 新增
+
+- 接入 `com.qmdeve.liquidglass:core:1.0.5` 依赖并新增“模糊 / 液态 / 兼容”设置入口；兼容模式使用原有 Haze 玻璃渲染，兼容开关值会被保留。
+- 隐藏 Debug 页面新增隔离原型供 API 33+ 设备验证；真实液态折射尚未接入正式聊天输入栏，聊天输入栏仍使用 Haze 回退效果。
+
+### 修改
+
+- 保留旧的 `BackgroundEffectType.GLASS` 序列化值。读取旧数据时自动归一化为 `LIQUID + liquidCompatMode=true`，避免旧用户设置反序列化失败并保持原有玻璃观感。
+- `minSdk` 保持 26；API 33 以下自动使用 Haze 兼容路径，不拒绝安装。
+- 针对根 View 采样导致的 `RenderNode` 递归录制崩溃，禁用该路径；在隔离原型通过设备验证并补足渲染期异常保护前，液态选项继续回退到原有 Haze 玻璃渲染。
+
+### Phase 0 验证状态
+
+- 已完成 View 与 Compose 的编译互操作验证：`:app:compileDebugKotlin` 通过。
+- 当前环境没有 Android 设备或模拟器，因此尚未确认根 View 采样是否存在自引用、聊天滚动帧率、发热和耗电表现；未伪造截图或运行结论。
+- 已发现方案甲会触发自引用导致崩溃；当前已回退到 Haze 兼容渲染，独立采样容器仍待后续改造。
+- 已在隐藏 Debug 页面加入方案乙隔离原型：采样源、`LiquidGlassView` 与输入控件位于真实 `FrameLayout` 的兄弟层；API 33 以下及初始化异常显示兼容表面。库内部异步 `pre-draw` 渲染异常不能被外层初始化 `try/catch` 捕获，仍需通过实机压力验证或增加库级保护。正式聊天输入栏仍使用 Haze，不视为 F006 已交付。
+
+### 第三方组件
+
+- `com.qmdeve.liquidglass:core:1.0.5` — MIT License, Copyright © 2025-2026 Donny Yale (QmDeve)。
+
+## [v2.5.3-work.3] — 2026-09-23（本地 Release 已构建，未发布）
+
+> 正式接入 F006。版本号 versionName=2.5.3-work.3、versionCode=190。
+
+### 新增
+
+- API 33 及以上设备在选择“液态”且关闭“兼容”后，聊天输入栏使用 AndroidLiquidGlassView 的真实折射与色散效果。
+- 将液态玻璃库 1.0.5（MIT）本地化为独立 Android library module；采样内容、玻璃表面和可交互输入组合位于互不嵌套的兄弟层。
+- 液态玻璃录制增加重入保护与 finally 收尾；初始化、尺寸变化、参数更新、绘制和异步 pre-draw 异常会记录日志并触发进程内熔断，回退到 Haze 兼容效果。
+
+### 修改
+
+- 正式聊天输入栏启用液态效果；模糊、兼容、API 33 以下和渲染失败时沿用原有 Haze 实现及参数。
+- 保留旧的 glass 序列化值并将旧配置归一化为“液态 + 兼容”；默认值仍为“模糊”，minSdk=26 不变。
+- 移除仅供 Phase 0 的隐藏 Debug 原型页面。
+
+### 验证状态
+
+- `:app:testDebugUnitTest`、`:app:compileReleaseKotlin` 和 `:app:assembleRelease` 均通过；Release APK 的包名、版本及 V2 签名已核验。
+- 本版本仍需用户设备验证重复进入、旋转、切换会话、触摸输入、滚动流畅度、发热与耗电。本地构建或单元测试不能替代这些实机检查。
+
+### 第三方组件
+
+- liquidglass/ 基于 QmDeve/AndroidLiquidGlassView v1.0.5，保留上游 MIT 版权声明和许可证全文，Copyright © 2025-2026 Donny Yale (QmDeve)。
+
 ## 协议声明
 
 本 fork 以 **AGPL-3.0** 授权，原始版权归 RikkaHub 作者所有。

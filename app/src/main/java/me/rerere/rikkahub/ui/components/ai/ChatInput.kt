@@ -58,6 +58,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalFocusManager
@@ -70,6 +71,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.window.DialogProperties
 import com.dokar.sonner.ToastType
 import dev.chrisbanes.haze.HazeInput
@@ -150,6 +154,9 @@ fun ChatInput(
     onStartVoiceMode: (() -> Unit)? = null,
     voiceState: VoiceSessionState = VoiceSessionState(),
     onStopVoiceMode: () -> Unit = {},
+    forceLiquidGlass: Boolean = false,
+    onInputPanelBoundsChanged: ((Float, Float, IntSize) -> Unit)? = null,
+    onInputHeightChanged: ((Int) -> Unit)? = null,
 ) {
     val toaster = LocalToaster.current
     val assistant = settings.getCurrentAssistant()
@@ -157,6 +164,10 @@ fun ChatInput(
     val inputHazeStyle = HazeBlurStyle.Material3 {
         blurRadius(12.dp)
     }
+    val backgroundEffect = settings.displaySetting
+    val useLiquidGlass = forceLiquidGlass && backgroundEffect.enableBlurEffect &&
+        backgroundEffect.backgroundEffectType == BackgroundEffectType.LIQUID &&
+        !backgroundEffect.liquidCompatMode
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
@@ -222,6 +233,7 @@ fun ChatInput(
     ) {
         Column(
             modifier = modifier
+                .onSizeChanged { onInputHeightChanged?.invoke(it.height) }
                 .imePadding()
                 .navigationBarsPadding()
                 .padding(horizontal = 8.dp)
@@ -235,39 +247,51 @@ fun ChatInput(
                 onFinishEdit = onFinishEditQueuedMessage,
                 onResume = onResumeMessageQueue,
             )
-            Surface(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(containerShape)
-                    .then(
-                        if (settings.displaySetting.enableBlurEffect) {
-                            when (settings.displaySetting.backgroundEffectType) {
-                                BackgroundEffectType.BLUR -> Modifier.hazeBlur(
-                                    input = HazeInput.Sources(hazeState),
-                                    style = inputHazeStyle,
-                                )
-                                BackgroundEffectType.GLASS -> Modifier.hazeGlass(
-                                    input = HazeInput.Sources(hazeState),
-                                    style = GlassStyle.Material3(
-                                        containerColor = hazeTintColor,
-                                        tint = hazeTintColor.copy(alpha = 0.72f),
-                                    ) {
-                                        // Keep background text from competing with the input text.
-                                        optics(GlassDefaults.optics.copy(
-                                            blurRadius = OpticalSizeValue.Fixed(16.dp),
-                                            depth = OpticalSizeValue.Fixed(0.5f),
-                                        ))
-                                        shape(containerShape)
-                                    },
-                                )
-                            }
-                        } else Modifier
-                    ),
-                shape = containerShape,
-                tonalElevation = 0.dp,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-                color = if (settings.displaySetting.enableBlurEffect) Color.Transparent else hazeTintColor,
+                    .onGloballyPositioned { coordinates ->
+                    onInputPanelBoundsChanged?.let { callback ->
+                        val position = coordinates.positionInWindow()
+                        callback(position.x, position.y, coordinates.size)
+                    }
+                },
             ) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(containerShape)
+                        .then(
+                            if (backgroundEffect.enableBlurEffect && !useLiquidGlass) {
+                                when (backgroundEffect.backgroundEffectType) {
+                                    BackgroundEffectType.BLUR -> Modifier.hazeBlur(
+                                        input = HazeInput.Sources(hazeState),
+                                        style = inputHazeStyle,
+                                    )
+                                    BackgroundEffectType.GLASS,
+                                    BackgroundEffectType.LIQUID -> Modifier.hazeGlass(
+                                        input = HazeInput.Sources(hazeState),
+                                        style = GlassStyle.Material3(
+                                            containerColor = hazeTintColor,
+                                            tint = hazeTintColor.copy(alpha = 0.72f),
+                                        ) {
+                                            // Keep background text from competing with the input text.
+                                            optics(GlassDefaults.optics.copy(
+                                                blurRadius = OpticalSizeValue.Fixed(16.dp),
+                                                depth = OpticalSizeValue.Fixed(0.5f),
+                                            ))
+                                            shape(containerShape)
+                                        },
+                                    )
+                                }
+                            } else Modifier
+                        ),
+                    shape = containerShape,
+                    tonalElevation = 0.dp,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                    color = if (backgroundEffect.enableBlurEffect) Color.Transparent else hazeTintColor,
+                ) {
                 Column(
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                     verticalArrangement = Arrangement.spacedBy(2.dp)
@@ -409,6 +433,7 @@ fun ChatInput(
                             )
                         }
                     }
+                }
                 }
             }
 
