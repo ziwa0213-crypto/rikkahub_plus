@@ -67,7 +67,7 @@
 
 - Release tag 使用不带 `v` 前缀的 SemVer，且核心版本号必须高于已安装版本，例如 `2.5.3-work.1`。
 - GitHub 仓库必须保持公开，否则匿名更新检查会静默为无更新。
-- 应用显示名称统一为 `Rikkahub Work`；Debug 与 Release 的包名仍分别为 `me.rerere.rikkahub.debug` 和 `me.rerere.rikkahub.plus`。
+- 应用显示名称统一为 `RikkaHub Work`；Debug 与 Release 的包名仍分别为 `me.rerere.rikkahub.debug` 和 `me.rerere.rikkahub.plus`。
 
 ## [v2.5.3-work.1] — 2026-09-21
 
@@ -94,7 +94,26 @@
 - Release APK 使用独立签名，GitHub Release 资产名为 `Rikkahub Work-release.apk`。
 - 正式版本：`versionName=2.5.3-work.1`，`versionCode=188`。
 
-## [v2.5.3-work.2] — 2026-09-22（已构建验证包，未正式发布）
+## [F005] 关于页精简与品牌本地化 — 2026-09-22
+
+### 品牌与关于页
+
+- 应用名统一为 `RikkaHub Work`，使桌面、应用管理和应用内显示名称保持一致。
+- 精简关于页：移除官网入口；GitHub 仓库与 License 入口改为指向本 fork `ziwa0213-crypto/rikkahub_work`。
+- 将关于页中的“使用文档”调整为“官方使用文档”，明确该链接所指内容的来源。
+
+### 社区与赞助入口
+
+- 移除关于页中的 QQ、Discord 和赞助入口。
+- 移除赞助提醒，以及不再使用的 Sponsor API、数据模型与相关资源。
+
+### 语言与导出内容
+
+- 删除日语、韩语和俄语资源目录（`values-ja`、`values-ko`、`values-ru`），保留英语、简体中文和繁体中文。
+- Mermaid 图片与聊天图片导出时不再添加 `rikka-ai.com` 水印。
+- 分享文案中的下载地址改为本 fork 的 GitHub Releases 页面。
+
+## [v2.5.3-work.2] — 2026-09-22（已发布为 Pre-release）
 
 > 本版本基于当前工作树，版本号为 `versionName=2.5.3-work.2`、`versionCode=189`。
 
@@ -120,7 +139,7 @@
 
 - `com.qmdeve.liquidglass:core:1.0.5` — MIT License, Copyright © 2025-2026 Donny Yale (QmDeve)。
 
-## [v2.5.3-work.3] — 2026-09-23（本地 Release 已构建，未发布）
+## [v2.5.3-work.3] — 2026-09-23（已正式发布）
 
 > 正式接入 F006。版本号 versionName=2.5.3-work.3、versionCode=190。
 
