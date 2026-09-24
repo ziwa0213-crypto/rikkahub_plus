@@ -164,6 +164,20 @@
 
 - liquidglass/ 基于 QmDeve/AndroidLiquidGlassView v1.0.5，保留上游 MIT 版权声明和许可证全文，Copyright © 2025-2026 Donny Yale (QmDeve)。
 
+## [v2.5.3-work.4] — 2026-09-24
+
+> F007 思考模式推理回传修复。版本号 `versionName=2.5.3-work.4`、`versionCode=191`。
+
+### 修复
+
+- 修复 DeepSeek 思考模式在工具调用或 `ask_user` 交互后继续生成时，因缺少历史 `reasoning_content` 而返回 HTTP 400 并中断对话的问题。
+- 当 Chat Completions 请求实际携带工具，且服务商主机名或模型名属于 DeepSeek 方言时，即使关闭“回传历史思考过程”开关，也会自动完整回传历史推理内容。
+- 非 DeepSeek 服务商、DeepSeek 无工具请求，以及用户已开启开关的既有行为保持不变。
+
+### 设置提示
+
+- 在“回传历史思考过程”设置下补充说明：部分服务商（如 DeepSeek）使用工具时会自动强制回传。
+
 ## 协议声明
 
 本 fork 以 **AGPL-3.0** 授权，原始版权归 RikkaHub 作者所有。

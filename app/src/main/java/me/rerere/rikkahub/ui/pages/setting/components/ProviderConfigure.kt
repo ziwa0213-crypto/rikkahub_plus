@@ -288,7 +288,14 @@ private fun ProviderConfigureOpenAI(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(stringResource(R.string.setting_provider_page_include_history_reasoning))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(stringResource(R.string.setting_provider_page_include_history_reasoning))
+            Text(
+                text = stringResource(R.string.setting_provider_page_include_history_reasoning_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         Switch(
             checked = provider.includeHistoryReasoning,
             onCheckedChange = { onEdit(provider.copy(includeHistoryReasoning = it)) }

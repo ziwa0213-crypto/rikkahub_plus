@@ -230,13 +230,16 @@ class ChatCompletionsAPI(
     ): JsonObject {
         val host = providerSetting.baseUrl.toHttpUrl().host
         val isOpenRouter = host == "openrouter.ai"
+        val hasTools = hasTools(params)
+        val includeHistoryReasoning = providerSetting.includeHistoryReasoning ||
+                (isDeepSeekDialect(host, params.model.modelId) && hasTools)
         return buildJsonObject {
             put("model", params.model.modelId)
             put(
                 "messages",
                 buildMessages(
                     messages = messages,
-                    includeHistoryReasoning = providerSetting.includeHistoryReasoning,
+                    includeHistoryReasoning = includeHistoryReasoning,
                     includeOpenRouterReasoningDetails = isOpenRouter,
                     supportInputModalities = params.model.inputModalities,
                 )
@@ -417,7 +420,7 @@ class ChatCompletionsAPI(
                 }
             }
 
-            if (params.model.abilities.contains(ModelAbility.TOOL) && params.tools.isNotEmpty()) {
+            if (hasTools) {
                 putJsonArray("tools") {
                     params.tools.forEach { tool ->
                         add(buildJsonObject {
@@ -439,6 +442,17 @@ class ChatCompletionsAPI(
             }
         }.mergeCustomBody(params.customBody)
     }
+
+    private fun hasTools(params: TextGenerationParams): Boolean =
+        params.model.abilities.contains(ModelAbility.TOOL) && params.tools.isNotEmpty()
+
+    /**
+     * DeepSeek requires historical reasoning_content whenever tools are sent,
+     * including when the user has disabled the generic history-reasoning option.
+     */
+    private fun isDeepSeekDialect(host: String, modelId: String): Boolean =
+        host.contains("deepseek", ignoreCase = true) ||
+                modelId.contains("deepseek", ignoreCase = true)
 
     private fun isModelAllowTemperature(model: Model): Boolean {
         val isMoonshotRestricted = ModelRegistry.KIMI_K2_5.match(model.modelId) ||
